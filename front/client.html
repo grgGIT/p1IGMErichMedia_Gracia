@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="general.css">
+    <title>Homepage</title>
+</head>
+<body>
+    <h1>API Project</h1>
+<div class="endpoint">
+    <h2 class="collapsible" onclick="window.onload()">/api/get
+        <span class="methods">
+            <code>GET</code>
+            <code>HEAD</code>
+        </span>
+    </h2>
+    <div class="content" style="display: block;">
+        <div class="content-box"><h3>Test This Endpoint</h3></div>
+        <form data-method="GET" data-endpoint="">
+            <label>Country name: <input type="text" name="name"></input></label>
+            <br>
+            <label> <input type="radio" name="method" value="GET" checked=""></nput>GET</label>
+            <label> <input type="radio" name="method" value="HEAD" checked=""></nput>HEAD</label>
+
+            <button type="submit">Send Request</button>
+        </form>
+        <pre class="result"></pre>
+    </div>
+    
+</div>
+<script>
+document.querySelectorAll(".content").forEach((e => {
+    e !== t.nextElementSibling && (e.style.display = "none")
+  }));
+  const e = t.nextElementSibling;
+  e.style.display = "block" === e.style.display ? "none" : "block"
+  
+  </script>
+    
+</body>
+</html>
