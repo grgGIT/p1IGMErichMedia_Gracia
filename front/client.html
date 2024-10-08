@@ -9,7 +9,7 @@
 <body>
     <h1>API Project</h1>
 <div class="endpoint">
-    <h2 class="collapsible">/api/CountryName/get
+    <h2 class="collapsible">/api/countries/get
         <span class="methods">
             <code>GET</code>
             <code>HEAD</code>
@@ -19,8 +19,8 @@
         <div class="content-box">
             <h3>Test This Endpoint</h3>
         </div>
-        <form id = "countryForm">
-            <label>Country name: <input type="text" name="name" id="countryName"></input></label>
+        <form id="countryForm">
+            <label>Country name: <input type="text" name="name" id="countryName"></label>
             <br>
             <label> <input type="radio" name="method" value="GET" checked>GET</label>
             <label> <input type="radio" name="method" value="HEAD">HEAD</label>
@@ -29,11 +29,10 @@
         </form>
         <pre class="result" id="result"></pre>
     </div>
-    
 </div>
 
 <div class="endpoint">
-    <h2 class="collapsible">/api/addCountry/post
+    <h2 class="collapsible">/api/countries/post
         <span class="methods">
             <code>POST</code>
         </span>
@@ -43,93 +42,88 @@
             <h3>Test This Endpoint</h3>
         </div>
         <form id="countryFormP">
-            <label>Add country name: <input type="text" name="name" id="countryNameP"></input></label>
+            <label>Add country name: <input type="text" name="name" id="countryNameP"></label>
             <br>
             <button type="submit">Send Request</button>
         </form>
         <pre class="result" id="resultP"></pre>
     </div>
 </div>
+
 <script>
 // Function to handle the collapsible behavior
 document.querySelectorAll('.collapsible').forEach(function(header) {
-            header.addEventListener('click', function() {
-                const content = this.nextElementSibling;
-                if (content.style.display === "none" || content.style.display === "") {
-                    content.style.display = "block";
-                } else {
-                    content.style.display = "none";
-                }
-            });
-        });
-
-    // Handle form submission
-    document.getElementById('countryForm').addEventListener('submit', function(event) {
-        event.preventDefault();
-
-        const countryName = document.getElementById('countryName').value.trim();
-        const method = document.querySelector('input[name="method"]:checked').value;
-        const resultElement = document.getElementById('result');
-        
-        if (!countryName) {
-            resultElement.textContent = 'Please enter a country name.';
-            return;
-        }
-
-        const url = `/api/countries?name=${encodeURIComponent(countryName)}`;
-
-        fetch(url, { method })
-            .then(response => {
-                if (method === 'HEAD') {
-                    const contentLength = response.headers.get('Content-Length');
-                    resultElement.textContent = `HEAD request for ${countryName} completed. \nStatus: ${response.status}\nContent-Length: ${contentLength}`;
-                } else if (method === 'GET') {
-                    return response.json().then(data => {
-                        resultElement.textContent = JSON.stringify(data, null, 2);
-                    });
-                }
-            })
-            .catch(error => {
-                resultElement.textContent = `Error: ${error.message}`;
-            });
+    header.addEventListener('click', function() {
+        const content = this.nextElementSibling;
+        content.style.display = (content.style.display === "none" || content.style.display === "") ? "block" : "none";
     });
+});
 
+// Handle GET and HEAD requests
+document.getElementById('countryForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    
+    const countryName = document.getElementById('countryName').value.trim();
+    const method = document.querySelector('input[name="method"]:checked').value;
+    const resultElement = document.getElementById('result');
+    
+    if (!countryName) {
+        resultElement.textContent = 'Please enter a country name.';
+        return;
+    }
 
-    //post method
-     // Handle form submission
-    document.getElementById('countryFormP').addEventListener('submit', function(event) {
-        event.preventDefault();
+    const url = `/api/countries?name=${encodeURIComponent(countryName)}`;
 
-        const countryNameP = document.getElementById('countryNameP').value.trim();
-        const resultElementP = document.getElementById('resultP');
-        
-        if (!countryNameP) {
-            resultElementP.textContent = 'Please enter a country name.';
-            return;
-        }
-
-        const url = '/api/countries';
-
-        fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ name: countryName })
-            })
-            .then(response => {
-            if (!response.ok) {
-                throw new Error('Failed to add country');
+    fetch(url, { method })
+        .then(response => {
+            if (method === 'HEAD') {
+                const contentLength = response.headers.get('Content-Length');
+                resultElement.textContent = `HEAD request for ${countryName} completed. \nStatus: ${response.status}\nContent-Length: ${contentLength}`;
+            } else if (method === 'GET') {
+                return response.json().then(data => {
+                    resultElement.textContent = JSON.stringify(data, null, 2);
+                });
             }
-            return response.json();
-            })
-            .then(data => {
-                resultElementP.textContent = `Country added successfully: ${JSON.stringify(data.country)}`;
-            })
-            .catch(error => {
-                resultElementP.textContent = `Error: ${error.message}`;
-            });
+        })
+        .catch(error => {
+            resultElement.textContent = `Error: ${error.message}`;
         });
-  </script>   
+});
+
+// Handle POST request
+document.getElementById('countryFormP').addEventListener('submit', function(event) {
+    event.preventDefault();
+    
+    const countryNameP = document.getElementById('countryNameP').value.trim();
+    const resultElementP = document.getElementById('resultP');
+
+    if (!countryNameP) {
+        resultElementP.textContent = 'Please enter a country name.';
+        return;
+    }
+
+    const url = '/api/countries';
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ name: countryNameP })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Failed to add country');
+        }
+        return response.json();
+    })
+    .then(data => {
+        resultElementP.textContent = `Country added successfully: ${JSON.stringify(data.country)}`;
+    })
+    .catch(error => {
+        resultElementP.textContent = `Error: ${error.message}`;
+    });
+});
+</script>   
 </body>
 </html>
