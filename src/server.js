@@ -1,104 +1,135 @@
 const http = require('http');
 const path = require('path');
 const fs = require('fs');
-const PORT = 3000;
+const port = process.env.PORT || process.env.NODE_PORT || 3001;
 
-// Read the countries data from the JSON file
-const countries = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../data/countries.json'), 'utf-8'));
+// Read static files
+const index = fs.readFileSync(path.resolve(__dirname, '../front/client.html'));
+const css = fs.readFileSync(path.resolve(__dirname, '../front/general.css'));
+const img = fs.readFileSync(path.resolve(__dirname, '../front/map.png'));
 
-const server = http.createServer((req, res) => {
-    if (req.method === 'GET' && req.url.startsWith('/api/countries')) {
-        const urlObj = new URL(req.url, `http://${req.headers.host}`);
-        const countryName = urlObj.searchParams.get('name');
+// Currency conversion rates (mocked)
+const currencyRates = {
+    'USD': { 'EUR': 0.85, 'USD': 1 },
+    'EUR': { 'EUR': 1, 'USD': 1.18 },
+};
 
-        if (!countryName) {
-            res.writeHead(400, { 'Content-Type': 'application/json' });
-            return res.end(JSON.stringify({ error: 'Country name is required' }));
-        }
-
-        const country = countries.find(c => c.name.toLowerCase() === countryName.toLowerCase());
-
-        if (!country) {
-            res.writeHead(404, { 'Content-Type': 'application/json' });
-            return res.end(JSON.stringify({ error: 'Country not found' }));
-        }
-
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        return res.end(JSON.stringify(country));
+// Get all countries from the JSON file
+const getCountriesData = () => {
+    try {
+        const countriesData = fs.readFileSync(path.resolve(__dirname, '../data/countries.json'), 'utf-8');
+        return JSON.parse(countriesData);
+    } catch (error) {
+        console.error('Error reading countries data:', error);
+        return [];
     }
+};
 
-    if (req.method === 'HEAD' && req.url.startsWith('/api/countries')) {
-        const urlObj = new URL(req.url, `http://${req.headers.host}`);
-        const countryName = urlObj.searchParams.get('name');
+const countries = getCountriesData();
 
-        const country = countries.find(c => c.name.toLowerCase() === countryName.toLowerCase());
+const getIndex = (response) => {
+    response.writeHead(200, { 'Content-Type': 'text/html' });
+    response.end(index);
+};
 
-        if (!country) {
-            res.writeHead(404);
-            return res.end();
-        }
+const getCSS = (response) => {
+    response.writeHead(200, { 'Content-Type': 'text/css' });
+    response.end(css);
+};
 
-        res.writeHead(200);
-        return res.end();
-    }
+const getImage = (response) => {
+    response.writeHead(200, { 'Content-Type': 'image/png' });
+    response.end(img);
+};
 
-    if (req.method === 'POST' && req.url === '/api/countries') {
-        let body = '';
-        req.on('data', chunk => {
-            body += chunk;
-        });
-
-        req.on('end', () => {
-            try {
-                const newCountry = JSON.parse(body); // Parse the JSON body
-
-                // Check if country already exists
-                const existingCountry = countries.find(c => c.name.toLowerCase() === newCountry.name.toLowerCase());
-
-                if (existingCountry) {
-                    res.writeHead(400, { 'Content-Type': 'application/json' });
-                    return res.end(JSON.stringify({ error: 'Country already exists' }));
-                }
-
-                // Add the new country to the array
-                countries.push(newCountry);
-
-                res.writeHead(201, { 'Content-Type': 'application/json' });
-                return res.end(JSON.stringify({ message: 'Country added successfully', country: newCountry }));
-            } catch (err) {
-                console.error('Error parsing JSON:', err);
-                res.writeHead(400, { 'Content-Type': 'application/json' });
-                return res.end(JSON.stringify({ error: 'Invalid JSON' }));
-            }
-        });
-    }
-
-    // Serve static files (e.g., HTML, CSS, JS)
-    const filePath = path.join(__dirname, '../front', req.url === '/' ? 'index.html' : req.url);
-    fs.readFile(filePath, (err, content) => {
-        if (err) {
-            res.writeHead(404, { 'Content-Type': 'text/html' });
-            return res.end('<h1>404 Not Found</h1>');
-        }
-
-        const ext = path.extname(filePath);
-        let contentType = 'text/html';
-
-        switch (ext) {
-            case '.css':
-                contentType = 'text/css';
-                break;
-            case '.js':
-                contentType = 'application/javascript';
-                break;
-        }
-
-        res.writeHead(200, { 'Content-Type': contentType });
-        return res.end(content);
+const parseBody = (request, handler) => {
+    const body = [];
+    request.on('data', (chunk) => {
+        body.push(chunk);
     });
-});
+    request.on('end', () => {
+        const bodyString = Buffer.concat(body).toString();
+        const parsedData = JSON.parse(bodyString);
+        handler(parsedData);
+    });
+    request.on('error', (err) => {
+        console.error('Error handling POST request:', err);
+    });
+};
+
+const handleGet = (request, response, parsedUrl) => {
+    if (parsedUrl.pathname === '/api/countries') {
+        const countryName = parsedUrl.searchParams.get('name');
+        if (countryName) {
+            const country = countries.find(c => c.name.toLowerCase() === countryName.toLowerCase());
+            if (!country) {
+                response.writeHead(404, { 'Content-Type': 'application/json' });
+                return response.end(JSON.stringify({ error: 'Country not found' }));
+            }
+            response.writeHead(200, { 'Content-Type': 'application/json' });
+            return response.end(JSON.stringify(country));
+        }
+        response.writeHead(200, { 'Content-Type': 'application/json' });
+        return response.end(JSON.stringify(countries));
+    }
+
+    if (parsedUrl.pathname === '/api/timezones') {
+        const countryTime = parsedUrl.searchParams.get('countryTime');
+        if (!countryTime) {
+            response.writeHead(400, { 'Content-Type': 'application/json' });
+            return response.end(JSON.stringify({ error: 'Country name is required for timezones' }));
+        }
+
+        const country = countries.find(c => c.name.toLowerCase() === countryTime.toLowerCase());
+        if (!country || !country.timezones) {
+            response.writeHead(404, { 'Content-Type': 'application/json' });
+            return response.end(JSON.stringify({ error: 'Country or timezones not found' }));
+        }
+
+        response.writeHead(200, { 'Content-Type': 'application/json' });
+        return response.end(JSON.stringify(country.timezones));
+    }
+
+    // Serve static files
+    if (parsedUrl.pathname === '/general.css') {
+        getCSS(response);
+    } else if (parsedUrl.pathname === '/map.png') {
+        getImage(response);
+    } else {
+        getIndex(response);
+    }
+};
+
+const handlePost = (request, response, parsedUrl) => {
+    if (parsedUrl.pathname === '/api/countries') {
+        parseBody(request, (parsedData) => {
+            const newCountry = parsedData.name;
+            const existingCountry = countries.find(c => c.name.toLowerCase() === newCountry.toLowerCase());
+
+            if (existingCountry) {
+                response.writeHead(400, { 'Content-Type': 'application/json' });
+                return response.end(JSON.stringify({ error: 'Country already exists' }));
+            }
+
+            countries.push({ name: newCountry });
+            response.writeHead(201, { 'Content-Type': 'application/json' });
+            return response.end(JSON.stringify({ message: 'Country added successfully', country: { name: newCountry } }));
+        });
+    }
+};
+
+const onRequest = (request, response) => {
+    const protocol = request.connection.encrypted ? 'https' : 'http';
+    const parsedUrl = new URL(request.url, `${protocol}://${request.headers.host}`);
+
+    if (request.method === 'POST') {
+        handlePost(request, response, parsedUrl);
+    } else {
+        handleGet(request, response, parsedUrl);
+    }
+};
 
 // Start the server
-server.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+http.createServer(onRequest).listen(port, () => {
+    console.log(`Listening on 127.0.0.1:${port}`);
 });

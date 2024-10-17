@@ -7,9 +7,9 @@
     <title>Homepage</title>
 </head>
 <body>
-    <h1>API Project</h1>
+    <h1>Geography API !!</h1>
 <div class="endpoint">
-    <h2 class="collapsible">/api/countries/get
+    <h2 class="collapsible">Find a country!
         <span class="methods">
             <code>GET</code>
             <code>HEAD</code>
@@ -17,9 +17,9 @@
     </h2>
     <div class="content">
         <div class="content-box">
-            <h3>Test This Endpoint</h3>
+            <h3>Click whichever button to see all of our data for your searched country!</h3>
         </div>
-        <form id="countryForm">
+        <form id="countryForm" form data-method="GET" data-endpoint="/api/getCountries">
             <label>Country name: <input type="text" name="name" id="countryName"></label>
             <br>
             <label> <input type="radio" name="method" value="GET" checked>GET</label>
@@ -32,98 +32,325 @@
 </div>
 
 <div class="endpoint">
-    <h2 class="collapsible">/api/countries/post
+    <h2 class="collapsible">Add a country(s)!
         <span class="methods">
             <code>POST</code>
         </span>
     </h2>
     <div class="content">
         <div class="content-box">
-            <h3>Test This Endpoint</h3>
+            <h3>Add a name of your new country! You can find it again in the first GET section if you look for it by name</h3>
         </div>
-        <form id="countryFormP">
-            <label>Add country name: <input type="text" name="name" id="countryNameP"></label>
+        <form id="countryFormP" form data-method="POST" data-endpoint="/api/addCountry">
+            <label>New country name: <input type="text" name="name" id="countryNameP"></label>
             <br>
             <button type="submit">Send Request</button>
         </form>
         <pre class="result" id="resultP"></pre>
     </div>
 </div>
+<br>
+<div class="endpoint">
+    <h2 class="collapsible">Add a country(s) {extra options}!
+        <span class="methods">
+            <code>POST</code>
+        </span>
+    </h2>
+    <div class="content">
+        <div class="content-box">
+            <h3>Add a name of your new country! You can find it again in the first GET section if you look for it by name</h3>
+        </div>
+        <form id="countryFormP2" form data-method="POST" data-endpoint="/api/addCountry">
+            <label>New country name: <input type="text" name="name" id="countryNameP2"></label>
+            <br>
+            <label>Country capital name: <input type="text" name="capital" id="countryNameP2"></label>
+            <br>
+            <label>Country region: <input type="text" name="region" id="countryNameP2"></label>
+            <br>
+            <button type="submit">Send Request</button>
+        </form>
+        <pre class="result" id="resultP"></pre>
+    </div>
+</div>
+<div id="currencyConversion">
+    <h2>Currency Conversion</h2>
+    <code>GET</code>
+    <label for="countryCurrency">Country to convert currency from:</label>
+    <input type="text" id="countryCurrency" placeholder="Enter country name" />
+    <br>
+    <label for="userCurrency">Your Current Currency:</label>
+    <select id="userCurrency">
+        <!-- Currency options will be populated here -->
+        <option value="USD">USD (default)</option>
+        <option value="EUR">EUR (default)</option>
+    </select>
 
+    <label for="amount">Amount:</label>
+    <input type="number" id="amount" placeholder="Enter amount" />
+
+    <button id="convertCurrency">Convert</button>
+    
+    <div id="conversionResult"></div>
+</div>
+
+<br>
+
+<div id="timeConversion">
+    <h2>Current Time in Country</h2>
+    <code>GET</code>
+    <label for="countryTime">Select Country:</label>
+    <input type="text" id="countryTime" placeholder="Enter country name" />
+
+    <label for="timezone">Select Timezone:</label>
+    <select id="timezone">
+
+        <!-- Timezone options will be populated here -->
+    </select>
+
+    <button id="getTime">Get Time</button>
+    
+    <div id="timeResult"></div>
+</div>
+<br>
+<div id="FindCapitol">
+    <h2>Find out the capital of a Country</h2>
+    <code>GET</code>
+    <label for="countryTime">Select Country:</label>
+    <input type="text" id="cappy" placeholder="Enter country name" />
+
+    <button id="getCap">Get Capital</button>
+    
+    <div id="capResult"></div>
+</div>
+<br>
+<div id="LongLat">
+    <h2>Find out the Longitude and Latitude of a Country</h2>
+    <code>GET</code>
+    <label for="countryTime">Select Country:</label>
+    <input type="text" id="longy" placeholder="Enter country name" />
+
+    <button id="getLongLat">Submit</button>
+    
+    <div id="longLatResult"></div>
+</div>
 <script>
-// Function to handle the collapsible behavior
-document.querySelectorAll('.collapsible').forEach(function(header) {
-    header.addEventListener('click', function() {
-        const content = this.nextElementSibling;
-        content.style.display = (content.style.display === "none" || content.style.display === "") ? "block" : "none";
-    });
-});
-
-// Handle GET and HEAD requests
-document.getElementById('countryForm').addEventListener('submit', function(event) {
-    event.preventDefault();
     
-    const countryName = document.getElementById('countryName').value.trim();
-    const method = document.querySelector('input[name="method"]:checked').value;
-    const resultElement = document.getElementById('result');
-    
-    if (!countryName) {
-        resultElement.textContent = 'Please enter a country name.';
-        return;
-    }
-
-    const url = `/api/countries?name=${encodeURIComponent(countryName)}`;
-
-    fetch(url, { method })
-        .then(response => {
-            if (method === 'HEAD') {
-                const contentLength = response.headers.get('Content-Length');
-                resultElement.textContent = `HEAD request for ${countryName} completed. \nStatus: ${response.status}\nContent-Length: ${contentLength}`;
-            } else if (method === 'GET') {
-                return response.json().then(data => {
-                    resultElement.textContent = JSON.stringify(data, null, 2);
-                });
-            }
-        })
-        .catch(error => {
-            resultElement.textContent = `Error: ${error.message}`;
+ // Function to handle the collapsible behavior
+ document.querySelectorAll('.collapsible').forEach(header => {
+            header.addEventListener('click', () => {
+                const content = header.nextElementSibling;
+                content.style.display = (content.style.display === "none" || content.style.display === "") ? "block" : "none";
+            });
         });
-});
 
-// Handle POST request
-document.getElementById('countryFormP').addEventListener('submit', function(event) {
-    event.preventDefault();
-    
-    const countryNameP = document.getElementById('countryNameP').value.trim();
-    const resultElementP = document.getElementById('resultP');
+        // General function to send a request
+        const sendRequest = (url, method, body = null) => {
+            return fetch(url, {
+                method,
+                headers: body ? { 'Content-Type': 'application/json' } : {},
+                body: body ? JSON.stringify(body) : null
+            });
+        };
 
-    if (!countryNameP) {
-        resultElementP.textContent = 'Please enter a country name.';
+        // Function to handle GET/HEAD form submission
+        document.getElementById('countryForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const countryName = document.getElementById('countryName').value.trim();
+            const method = document.querySelector('input[name="method"]:checked').value;
+            const resultElement = document.getElementById('result');
+
+            if (!countryName) {
+                resultElement.textContent = 'Please enter a country name.';
+                return;
+            }
+
+            const url = `/api/countries?name=${encodeURIComponent(countryName)}`;
+            sendRequest(url, method)
+                .then(response => {
+                    if (method === 'HEAD') {
+                        console.log(response);
+                        console.log(response);
+                        return response.json().then(data =>{
+                        console.log(response);
+                        console.log(data)
+                        resultElement.textContent = `HEAD request completed. Status: ${response.status}\nContent-Length: ${data}`;
+                        });
+                        
+                    } else {
+                        return response.json().then(data => {
+                            const jsonString = JSON.stringify(data);
+                            const contentLength = jsonString.length; // Calculate character length
+                            resultElement.textContent = JSON.stringify(data, null, 2);
+                            console.log(`Character Length of JSON Response: ${contentLength}`);
+                        });
+                    }
+                })
+                .catch(error => {
+                    resultElement.textContent = `Error: ${error.message}`;
+                });
+        });
+
+        // Function to handle POST form submission
+        document.getElementById('countryFormP').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const countryNameP = document.getElementById('countryNameP').value.trim();
+            const resultElementP = document.getElementById('resultP');
+
+            if (!countryNameP) {
+                resultElementP.textContent = 'Please enter a country name.';
+                return;
+            }
+
+            const url = '/api/countries';
+            sendRequest(url, 'POST', { name: countryNameP })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to add country');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    resultElementP.textContent = `Country added successfully: ${JSON.stringify(data)}`;
+                })
+                .catch(error => {
+                    resultElementP.textContent = `Error: ${error.message}`;
+                });
+                console.log(resultElementP)
+        });
+
+        // Function to handle POST form submission for adding a country with extra options
+        document.getElementById('countryFormP2').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const countryName = document.getElementById('countryNameP2').value.trim();
+            const capital = document.getElementById('countryCapital').value.trim();
+            const region = document.getElementById('countryRegion').value.trim();
+            const resultElementP2 = document.getElementById('resultP2');
+
+            if (!countryName || !capital || !region) {
+                resultElementP2.textContent = 'Please fill in all fields.';
+                return;
+            }
+            const url = '/api/countries';
+            sendRequest(url, 'POST', { name: countryName, capital: capital, region: region })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to add country');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    resultElementP2.textContent = `Country added successfully with extra options: ${JSON.stringify(data)}`;
+                })
+                .catch(error => {
+                    resultElementP2.textContent = `Error: ${error.message}`;
+                });
+        });
+
+        document.getElementById('convertCurrency').addEventListener('click', function () {
+            const countryName = document.getElementById('countryCurrency').value.trim();
+            const userCurrency = document.getElementById('userCurrency').value;
+            const amount = (document.getElementById('amount').value);
+
+            if (!countryName || !amount) {
+                alert('Please enter a country name and an amount.');
+                return;
+            }
+
+            const url = `/api/currencyConvert?country=${encodeURIComponent(countryName)}&currency=${userCurrency}&amount=${amount}`;
+            sendRequest(url, 'GET')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('conversionResult').textContent = `Converted amount: ${data.convertedAmount} ${data.currency}`;
+                })
+                .catch(error => {
+                    document.getElementById('conversionResult').textContent = `Error: ${error.message}`;
+                });
+        });
+
+        document.getElementById('getTime').addEventListener('click', async function () {
+            const countryName = document.getElementById('countryTime').value.trim();
+            const timezone = document.getElementById('timezone').value;
+
+            if (!countryName) {
+                alert('Please enter a country name.');
+                return;
+            }
+
+            const url = `/api/countries?name=${encodeURIComponent(countryName)}`;
+            sendRequest(url, 'GET')
+                .then(response => response.json())
+                .then(data => {
+                    const currentTime = getCurrentTimeInTimezone(timezone); // Implement a function to get current time in the given timezone
+                    const resultText = `${countryName} Current Time: ${currentTime}`;
+                    document.getElementById('timeResult').textContent = resultText;
+                })
+                .catch(error => {
+                    console.error(error);
+                    alert('Error retrieving data.');
+                });
+        });
+
+        document.getElementById('getLongLat').addEventListener('click', function () {
+            const countryName = document.getElementById('longy').value.trim();
+
+            if (!countryName) {
+                document.getElementById('longLatResult').textContent = 'Please enter a country name.';
+                return;
+            }
+
+            const url = `/api/getLongLat?country=${encodeURIComponent(countryName)}`;
+            sendRequest(url, 'GET')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('longLatResult').textContent = `Longitude: ${data.longitude}, Latitude: ${data.latitude}`;
+                })
+                .catch(error => {
+                    document.getElementById('longLatResult').textContent = `Error: ${error.message}`;
+                });
+        });
+
+document.getElementById('getCap').addEventListener('click', async function () {
+    const country = document.getElementById('cappy').value.trim();
+
+    if (!country) {
+        alert('Please enter a country name.');
         return;
     }
 
-    const url = '/api/countries';
+        const url = `/api/countries?name=${encodeURIComponent(country)}`;
+            sendRequest(url, 'GET')
+                .then(response => response.json())
+                .then(data => {
+                    const countryCurrency = data.capital;
+                    document.getElementById('capResult').textContent = resultText;
+                })
+                .catch(error => {
+                    console.error(error);
+                    alert('Error retrieving data.');
+                });
+        });
 
-    fetch(url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ name: countryNameP })
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Failed to add country');
+        // Function to get the current time in a specific timezone
+        function getCurrentTimeInTimezone(timezone) {
+            const date = new Date();
+            return date.toLocaleString('en-US', { timeZone: timezone });
         }
-        return response.json();
-    })
-    .then(data => {
-        resultElementP.textContent = `Country added successfully: ${JSON.stringify(data.country)}`;
-    })
-    .catch(error => {
-        resultElementP.textContent = `Error: ${error.message}`;
-    });
-});
+
+         
+        function populateCurrencyDropdown() {
+            // Fetch currencies and populate userCurrency dropdown
+        }
+        function populateTimezoneDropdown() {
+            // Fetch timezones and populate timezone dropdown
+        }
+
+        window.onload = () => {
+            populateCurrencyDropdown();
+            populateTimezoneDropdown();
+        };
+
+       
+
 </script>   
 </body>
 </html>
